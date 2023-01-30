@@ -16,7 +16,10 @@ from Role import Role
 def announce_winner():
     global gameState
     if len(set(table_cards)) == 5 and None not in table_cards:
-        pass
+        winners = choose_winner(players, table_cards)
+        for winner in winners:
+            print(winner.name)
+        gameState = GameState.ENDED
 
 def flop():
     global deck
@@ -273,7 +276,8 @@ if __name__ == '__main__':
         for p in players:
             p.display(scr)
 
-        announce_winner()
+        if gameState != GameState.ENDED:
+            announce_winner()
         
         clock.tick(30)
         pygame.display.flip()

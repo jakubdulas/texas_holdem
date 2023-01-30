@@ -542,11 +542,15 @@ def choose_winner(players, table_cards):
     """
     Returns list of winners
     """
-    player_combination_value = [(player, player.get_combination_and_hand_value(table_cards)) 
-                    for player in players if not player.out_of_game]
+    player_combination_value = [(player, player.get_combination_and_hand_value(table_cards))
+                                for player in players if not player.out_of_game]
+
     player_combination_value.sort(key=lambda x: x[1][1], reverse=True)
     max_points = player_combination_value[0][1][1]
+
+
     player_combination_value = list(filter(lambda x: x[1][1] == max_points, player_combination_value))
+
 
     if len(player_combination_value) != 1:
         if max_points == 7: return compare_full_houses(player_combination_value)
@@ -558,4 +562,4 @@ def choose_winner(players, table_cards):
         elif max_points == 2: return compare_pairs(player_combination_value)
         elif max_points == 1: return compare_high_cards(player_combination_value)
         
-    return [players[0]]
+    return [player_combination_value[0][0]]
