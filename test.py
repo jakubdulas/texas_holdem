@@ -900,6 +900,34 @@ def check_choose_winner_flush1():
     print("Choose winner Flush: ", choose_winner([p1, p2], table_cards=table) ==  [p2])
 
 
+def check_choose_winner_high_card1():
+    p1 = Player(100)
+    hand1 = [
+        Card('Q', 'H'),
+        Card('3', 'S')
+    ]
+
+    p2 = Player(100)
+    hand2 = [
+        Card('8', 'C'),
+        Card('K', 'H'),
+    ]
+
+    table = [
+        Card('2', 'H'),
+        Card('4', 'S'),
+        Card('A', 'C'),
+        Card('J', 'H'),
+        Card('9', 'C'),
+    ]
+
+    for c1, c2 in zip(hand1, hand2):
+        p1.add_card(c1)
+        p2.add_card(c2)
+    
+    print("Choose winner High Card: ", choose_winner([p1, p2], table_cards=table) ==  [p2])
+
+
 check_flush_straight()
 check_4of_a_kind()
 check_fh()
@@ -930,3 +958,4 @@ check_choose_winner_three_of_a_kind2()
 check_choose_winner_four_of_a_kind1()
 check_choose_winner_four_of_a_kind2()
 check_choose_winner_flush1()
+check_choose_winner_high_card1()

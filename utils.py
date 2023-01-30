@@ -514,6 +514,29 @@ def compare_flushes(player_combination_value):
     
     return winners
 
+
+def compare_high_cards(player_combination_value):
+    """
+    Compares high cards
+    """
+    winners = []
+    high_card = 0
+
+    for player, (combination, _) in player_combination_value:
+        temp_high_card = player.choose_high_card(combination)
+
+        # if a player has a higher card, set winners to = [] and add player to winners
+        if temp_high_card > high_card:
+            winners = []
+            winners.append(player)
+            high_card = temp_high_card
+
+        # if a player has the same card hight, add player to winners
+        elif temp_high_card == high_card:
+            winners.append(player)
+    
+    return winners
+
         
 def choose_winner(players, table_cards):
     """
@@ -526,8 +549,6 @@ def choose_winner(players, table_cards):
     player_combination_value = list(filter(lambda x: x[1][1] == max_points, player_combination_value))
 
     if len(player_combination_value) != 1:
-        # if players have full house
-
         if max_points == 7: return compare_full_houses(player_combination_value)
         if max_points == 6: return compare_flushes(player_combination_value)
         elif max_points == 8: return compare_four_of_a_kind(player_combination_value)
@@ -535,6 +556,6 @@ def choose_winner(players, table_cards):
         elif max_points == 4: return compare_three_of_a_kind(player_combination_value)
         elif max_points == 3: return compare_two_pairs(player_combination_value)
         elif max_points == 2: return compare_pairs(player_combination_value)
-
+        elif max_points == 1: return compare_high_cards(player_combination_value)
         
     return [players[0]]
