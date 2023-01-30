@@ -78,6 +78,7 @@ class Player(pygame.sprite.Sprite):
         i = 0
         combination = cards.copy()
         best_combination = combination
+        strongest_combination = 0
         for i in range(5):
             for card in self.hand:
                 combination = cards.copy()
@@ -86,6 +87,12 @@ class Player(pygame.sprite.Sprite):
                 if new_points > points:
                     points = new_points
                     best_combination = combination
+                    strongest_combination = calculate_combination_strength(combination, points)
+                elif new_points == points:
+                    temp_combination_strength = calculate_combination_strength(combination, points)
+                    if strongest_combination < temp_combination_strength:
+                        best_combination = combination
+                        strongest_combination = temp_combination_strength
 
         i=1
         j=0
@@ -99,6 +106,12 @@ class Player(pygame.sprite.Sprite):
             if new_points > points:
                 points = new_points
                 best_combination = combination
+                strongest_combination = calculate_combination_strength(combination, points)
+            elif new_points == points:
+                temp_combination_strength = calculate_combination_strength(combination, points)
+                if strongest_combination < temp_combination_strength:
+                    best_combination = combination
+                    strongest_combination = temp_combination_strength
 
             if i == 4:
                 j += 1

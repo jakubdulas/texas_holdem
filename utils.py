@@ -113,7 +113,42 @@ def is_flush(cards):
     return len(set(suits)) == 1
 
 
-def compare_full_houses(player_list):
+def calculate_combination_strength(combination, type):
+    """
+    Returns strength of a combination.
+    """
+    if type == 9 or type == 5:
+        combination.sort(key=lambda x: x.strength)
+        if combination[4].strength - combination[0].strength == 12:
+            return combination[3].strength
+        return combination[4].strength
+    elif type == 8:
+        four_of_a_kind = find_repetitions(combination)[0][0]
+        return Card.get_strength(four_of_a_kind)
+    elif type == 7:
+        (three_of_a_kind, _), (pair, _) = find_repetitions(combination)
+        toak_val = Card.get_strength(three_of_a_kind)*100
+        pair_val = Card.get_strength(pair)
+        return toak_val + pair_val
+    elif type == 6:
+        combination.sort(key=lambda x: x.strength)
+        return combination[4].strength
+    elif type == 4:
+        three_of_a_kind, _ = find_repetitions(combination)[0]
+        return Card.get_strength(three_of_a_kind)
+    elif type == 3:
+        combination.sort(key=lambda x: x.strength, reverse=True)
+        (pair1, _), (pair2,  _) = find_repetitions(combination)
+        pair1 = Card.get_strength(pair1)*100
+        pair2 = Card.get_strength(pair2)
+        return pair1 + pair2
+    elif type == 2:
+        pair, _ = find_repetitions(combination)[0]
+        return Card.get_strength(pair)
+    return 0
+
+
+def compare_full_houses(player_combination_value):
     """
     Compares full houses and returns the players with the strongest ones.
     """
@@ -121,9 +156,10 @@ def compare_full_houses(player_list):
     best_toak_value = -1
     best_pair_value = -1
     high_card = -1
-    for idx, (player, (combination, _)) in enumerate(player_list):
+    for idx, (player, (combination, _)) in enumerate(player_combination_value):
         toak, pair = find_repetitions(combination)
 
+        # assume that first player has the best hand
         if idx == 0:
             best_toak_value = Card.get_strength(toak[0]) * toak[1]
             best_pair_value = Card.get_strength(pair[0]) * pair[1]
@@ -133,42 +169,103 @@ def compare_full_houses(player_list):
 
         temp_hand_value = Card.get_strength(toak[0]) * toak[1]
 
+        # if a player has stronger three of a kind, set winners to = [] and add player to winners
         if temp_hand_value > best_toak_value:
             winners = []
             winners.append(player)
             best_toak_value = temp_hand_value
+
+        # if a player has the same three of a kind, compare pairs
         elif temp_hand_value == best_toak_value:
             temp_hand_value = Card.get_strength(pair[0]) * pair[1]
+
+            # if a player has stronger pair, set winners to = [] and add player to winners
             if temp_hand_value > best_pair_value:
                 winners = []
                 winners.append(player)
                 best_pair_value = temp_hand_value
+
+            # if a player has the same pair, compare high cards
             elif temp_hand_value == best_pair_value:
                 temp_high_card = player.choose_high_card(combination)
+
+                # if a player has higher card, set winners to = [] and add player to winners
                 if temp_high_card > high_card:
                     winners = []
                     winners.append(player)
                     high_card = temp_high_card
+
+                # if a player has the same card hight, add player to winners
                 elif temp_high_card == high_card:
                     winners.append(player)
     return winners
+
+
+def compare_straights(player_combination_value):
+    """
+    Compares straights
+    """
+
+    winners = []
+    highest_straight = 0
+    high_card = 0
+    for idx, (player, (combination, _)) in enumerate(player_combination_value):
+        combination.sort(key=lambda x: x.strength)
+
+        # assume that first player has the best hand
+        if idx == 0:
+            high_card = player.choose_high_card(combination)
+            if combination[4].strength - combination[0].strength == 12:
+                highest_straight = combination[3].strength
+            else:
+                highest_straight = combination[4].strength
+            winners.append(player)
+            continue
+
+        # set strength of a straight
+        if combination[4].strength - combination[0].strength == 12:
+            temp_straight = combination[3].strength
+        else:
+            temp_straight = combination[4].strength
+
+        # if a player has stronger straight, set winners to = [] and add player to winners
+        if temp_straight > highest_straight:
+            winners = []
+            winners.append(player)
+            highest_straight = temp_straight
+        
+        # if a player has the same straight strength, compare high cards
+        elif temp_straight == highest_straight:
+            temp_high_card = player.choose_high_card(combination)
+
+            # if a player has higher card, set winners to = [] and add player to winners
+            if temp_high_card > high_card:
+                winners = []
+                winners.append(player)
+                high_card = temp_high_card
+
+            # if a player has the same card hight, add player to winners
+            elif temp_high_card == high_card:
+                winners.append(player)
+    return winners
+
         
 def choose_winner(players, table_cards):
     """
     Returns list of winners
     """
     winners = []
-    player_list = [(player, player.get_combination_and_hand_value(table_cards)) 
+    player_combination_value = [(player, player.get_combination_and_hand_value(table_cards)) 
                     for player in players if not player.out_of_game]
-    player_list.sort(key=lambda x: x[1][1], reverse=True)
-    max_points = player_list[0][1][1]
-    player_list = list(filter(lambda x: x[1][1] == max_points, player_list))
+    player_combination_value.sort(key=lambda x: x[1][1], reverse=True)
+    max_points = player_combination_value[0][1][1]
+    player_combination_value = list(filter(lambda x: x[1][1] == max_points, player_combination_value))
 
-    if len(player_list) != 1:
+    if len(player_combination_value) != 1:
         # if players have full house
-        
-        if max_points == 7: return compare_full_houses(player_list)
 
+        if max_points == 7: return compare_full_houses(player_combination_value)
+        elif max_points == 5: return compare_straights(player_combination_value)
 
         
     return players[0]
