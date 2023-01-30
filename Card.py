@@ -6,7 +6,7 @@ class Card(pygame.sprite.Sprite):
 
     def __init__(self, name, suit):
         super(Card, self).__init__()
-        self.is_hidden = True
+        self.is_hidden = False
         self.name = name
         self.suit = suit
 
@@ -36,13 +36,23 @@ class Card(pygame.sprite.Sprite):
 
         return strength
 
+    def set_position(self, position):
+        self.rect.x = position[0]
+        self.rect.y = position[1]
+
+    def rotate(self, angle):
+        self.image_front = pygame.transform.rotate(self.image_front, angle)
+        self.image_back = pygame.transform.rotate(self.image_back, angle)
+
     def hide(self):
         self.is_hidden = True
 
     def show(self):
         self.is_hidden = False
 
-    def display(self, scr, pos=(100, 100)):
+    def display(self, scr, pos=None):
+        if pos == None:
+            pos = self.rect
         scr.blit(self.image, pos)
     
     def get_rect(self):

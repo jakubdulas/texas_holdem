@@ -1,5 +1,6 @@
 import pygame
 from utils import *
+from Role import Role
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, name, money, x, y):
@@ -8,26 +9,33 @@ class Player(pygame.sprite.Sprite):
         self.hand = []
         self.money = money
         self.name = name
+        self.out_of_game = False
+        self.is_its_move = False
+        self.role = None
+        self.money_in_pot = 0
 
     def display(self, scr):
-        angle = -30
         x, y = self.rect.x + 20, self.rect.y
         for card in self.hand:
-            image = card.image
-            image = pygame.transform.rotate(image, angle)
-            scr.blit(image, (x, y))
-            angle += 60
+            card.set_position((x, y))
+            card.display(scr)
             x -= 40
-
         
-        text = f"{self.name} ${self.money}"
+        text = f"{self.name} ${self.money} {self.str_role}"
         font = pygame.font.Font(None, 36)
         width, height = font.size(text)[0]+10, 40
 
         text = font.render(text, 1, (0, 0, 0))
 
         bar = pygame.Surface((width, height))
-        bar.fill((200, 200 ,200))
+
+        if not self.is_its_move:
+            bar.fill((200, 200 ,200))
+        else:
+            # if self.out_of_game:
+            #     bar.fill((250, 70, 70))
+            # else:
+            bar.fill((0, 100, 0))
 
         text_rect = text.get_rect(center=(width/2, height/2))
         bar.blit(text, text_rect)
@@ -38,8 +46,19 @@ class Player(pygame.sprite.Sprite):
     def set_role(self, role):
         self.role = role
 
+    @property
+    def str_role(self):
+        role_to_str = {
+            Role.BB: "BB",
+            Role.SB: "SB",
+            Role.DEALER: "DEALER",
+            None: ''
+        }
+        return role_to_str[self.role]
+
     def add_card(self, card):
         self.hand.append(card)
+        card.rotate(-30 if len(self.hand) == 1 else 30)
 
     def get_combination_and_hand_value(self, cards):
         """
@@ -123,14 +142,31 @@ class Player(pygame.sprite.Sprite):
         # high card
         return 1
 
-    def fold(self):
-        pass
+    def set_role(self, role):
+        self.role = role
 
-    def call(self):
-        pass
+    def finish_move(self):
+        self.is_its_move = False
+
+    def start_move(self):
+        self.is_its_move = True
+
+    def fold(self):
+        self.out_of_game = True
+        self.finish_move()
+
+    def call(self, biggest_call):
+        """
+        return how much money a player gave to pot
+        """
+        to_call = biggest_call - self.money_in_pot
+        self.money_in_pot += to_call
+        self.money -= to_call
+        self.finish_move()
+        return to_call
 
     def check(self):
-        pass
+        self.finish_move()
 
     def raise_(self):
-        pass
+        self.finish_move()
