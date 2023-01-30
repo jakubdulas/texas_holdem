@@ -134,16 +134,22 @@ def calculate_combination_strength(combination, type):
         combination.sort(key=lambda x: x.strength)
         return combination[4].strength
     elif type == 4:
-        three_of_a_kind, _ = find_repetitions(combination)[0]
+        repetitions = find_repetitions(combination)
+        if len(repetitions) == 0: return 0
+        three_of_a_kind, _ = repetitions[0]
         return Card.get_strength(three_of_a_kind)
     elif type == 3:
         combination.sort(key=lambda x: x.strength, reverse=True)
-        (pair1, _), (pair2,  _) = find_repetitions(combination)
+        repetitions = find_repetitions(combination)
+        if len(repetitions) == 0: return 0
+        (pair1, _), (pair2,  _) = repetitions
         pair1 = Card.get_strength(pair1)*100
         pair2 = Card.get_strength(pair2)
         return pair1 + pair2
     elif type == 2:
-        pair, _ = find_repetitions(combination)[0]
+        repetitions = find_repetitions(combination)
+        if len(repetitions) == 0: return 0
+        pair, _ = repetitions[0]
         return Card.get_strength(pair)
     return 0
 
@@ -249,12 +255,270 @@ def compare_straights(player_combination_value):
                 winners.append(player)
     return winners
 
+
+def compare_straights(player_combination_value):
+    """
+    Compares straights
+    """
+
+    winners = []
+    highest_straight = 0
+    high_card = 0
+    for idx, (player, (combination, _)) in enumerate(player_combination_value):
+        combination.sort(key=lambda x: x.strength)
+
+        # assume that first player has the best hand
+        if idx == 0:
+            high_card = player.choose_high_card(combination)
+            if combination[4].strength - combination[0].strength == 12:
+                highest_straight = combination[3].strength
+            else:
+                highest_straight = combination[4].strength
+            winners.append(player)
+            continue
+
+        # set strength of a straight
+        if combination[4].strength - combination[0].strength == 12:
+            temp_straight = combination[3].strength
+        else:
+            temp_straight = combination[4].strength
+
+        # if a player has stronger straight, set winners to = [] and add player to winners
+        if temp_straight > highest_straight:
+            winners = []
+            winners.append(player)
+            highest_straight = temp_straight
+        
+        # if a player has the same straight strength, compare high cards
+        elif temp_straight == highest_straight:
+            temp_high_card = player.choose_high_card(combination)
+
+            # if a player has higher card, set winners to = [] and add player to winners
+            if temp_high_card > high_card:
+                winners = []
+                winners.append(player)
+                high_card = temp_high_card
+
+            # if a player has the same card hight, add player to winners
+            elif temp_high_card == high_card:
+                winners.append(player)
+    return winners
+
+
+def compare_pairs(player_combination_value):
+    """
+    Compares pairs
+    """
+    winners = []
+    highest_pair = 0
+    high_card = 0
+    for idx, (player, (combination, _)) in enumerate(player_combination_value):
+            
+        # assume that the first player has the best hand
+        if idx == 0:
+            high_card = player.choose_high_card(combination)
+            highest_pair = calculate_combination_strength(combination, 2)
+            winners.append(player)
+            continue
+
+        temp_pair = calculate_combination_strength(combination, 2)
+
+        # if a player has stronger pair, set winners to = [] and add player to winners
+        if temp_pair > highest_pair:
+            winners = []
+            winners.append(player)
+            highest_pair = temp_pair
+        
+        # if a player has the same pair strength, compare high cards
+        elif temp_pair == highest_pair:
+            temp_high_card = player.choose_high_card(combination)
+
+            # if a player has a higher card, set winners to = [] and add player to winners
+            if temp_high_card > high_card:
+                winners = []
+                winners.append(player)
+                high_card = temp_high_card
+
+            # if a player has the same card hight, add player to winners
+            elif temp_high_card == high_card:
+                winners.append(player)
+    
+    return winners
+
+
+def compare_two_pairs(player_combination_value):
+    """
+    Compares two pairs
+    """
+    winners = []
+    highest_two_pairs = 0
+    high_card = 0
+
+    for idx, (player, (combination, _)) in enumerate(player_combination_value):
+            
+        # assume that the first player has the best hand
+        if idx == 0:
+            high_card = player.choose_high_card(combination)
+            highest_two_pairs = calculate_combination_strength(combination, 3)
+            winners.append(player)
+            continue
+
+        temp_pair = calculate_combination_strength(combination, 3)
+
+        # if a player has stronger pairs, set winners to = [] and add player to winners
+        if temp_pair > highest_two_pairs:
+            winners = []
+            winners.append(player)
+            highest_two_pairs = temp_pair
+        
+        # if a player has the same pairs strength, compare high cards
+        elif temp_pair == highest_two_pairs:
+            temp_high_card = player.choose_high_card(combination)
+
+            # if a player has a higher card, set winners to = [] and add player to winners
+            if temp_high_card > high_card:
+                winners = []
+                winners.append(player)
+                high_card = temp_high_card
+
+            # if a player has the same card hight, add player to winners
+            elif temp_high_card == high_card:
+                winners.append(player)
+    
+    return winners
+
+
+def compare_three_of_a_kind(player_combination_value):
+    """
+    Compares three of a kind
+    """
+    winners = []
+    highest_score = 0
+    high_card = 0
+
+    for idx, (player, (combination, _)) in enumerate(player_combination_value):
+            
+        # assume that the first player has the best hand
+        if idx == 0:
+            high_card = player.choose_high_card(combination)
+            highest_score = calculate_combination_strength(combination, 4)
+            winners.append(player)
+            continue
+
+        temp_pair = calculate_combination_strength(combination, 4)
+
+        # if a player has stronger three of a kind, set winners to = [] and add player to winners
+        if temp_pair > highest_score:
+            winners = []
+            winners.append(player)
+            highest_score = temp_pair
+        
+        # if a player has the same three of a kind strength, compare high cards
+        elif temp_pair == highest_score:
+            temp_high_card = player.choose_high_card(combination)
+
+            # if a player has a higher card, set winners to = [] and add player to winners
+            if temp_high_card > high_card:
+                winners = []
+                winners.append(player)
+                high_card = temp_high_card
+
+            # if a player has the same card hight, add player to winners
+            elif temp_high_card == high_card:
+                winners.append(player)
+    
+    return winners
+
+
+
+def compare_four_of_a_kind(player_combination_value):
+    """
+    Compares four of a kind
+    """
+    winners = []
+    highest_score = 0
+    high_card = 0
+
+    for idx, (player, (combination, _)) in enumerate(player_combination_value):
+
+        # assume that the first player has the best hand
+        if idx == 0:
+            high_card = player.choose_high_card(combination)
+            highest_score = calculate_combination_strength(combination, 8)
+            winners.append(player)
+            continue
+
+        temp_pair = calculate_combination_strength(combination, 8)
+
+        # if a player has stronger four of a kind, set winners to = [] and add player to winners
+        if temp_pair > highest_score:
+            winners = []
+            winners.append(player)
+            highest_score = temp_pair
+        
+        # if a player has the same four of a kind strength, compare high cards
+        elif temp_pair == highest_score:
+            temp_high_card = player.choose_high_card(combination)
+
+            # if a player has a higher card, set winners to = [] and add player to winners
+            if temp_high_card > high_card:
+                winners = []
+                winners.append(player)
+                high_card = temp_high_card
+
+            # if a player has the same card hight, add player to winners
+            elif temp_high_card == high_card:
+                winners.append(player)
+    
+    return winners
+
+
+def compare_flushes(player_combination_value):
+    """
+    Compares flushes
+    """
+    winners = []
+    highest_score = 0
+    high_card = 0
+
+    for idx, (player, (combination, _)) in enumerate(player_combination_value):
+
+        # assume that the first player has the best hand
+        if idx == 0:
+            high_card = player.choose_high_card(combination)
+            highest_score = calculate_combination_strength(combination, 6)
+            winners.append(player)
+            continue
+
+        temp_flush = calculate_combination_strength(combination, 6)
+
+        # if a player has stronger flush, set winners to = [] and add player to winners
+        if temp_flush > highest_score:
+            winners = []
+            winners.append(player)
+            highest_score = temp_flush
+        
+        # if a player has the same flush strength, compare high cards
+        elif temp_flush == highest_score:
+            temp_high_card = player.choose_high_card(combination)
+
+            # if a player has a higher card, set winners to = [] and add player to winners
+            if temp_high_card > high_card:
+                winners = []
+                winners.append(player)
+                high_card = temp_high_card
+
+            # if a player has the same card hight, add player to winners
+            elif temp_high_card == high_card:
+                winners.append(player)
+    
+    return winners
+
         
 def choose_winner(players, table_cards):
     """
     Returns list of winners
     """
-    winners = []
     player_combination_value = [(player, player.get_combination_and_hand_value(table_cards)) 
                     for player in players if not player.out_of_game]
     player_combination_value.sort(key=lambda x: x[1][1], reverse=True)
@@ -265,7 +529,12 @@ def choose_winner(players, table_cards):
         # if players have full house
 
         if max_points == 7: return compare_full_houses(player_combination_value)
-        elif max_points == 5: return compare_straights(player_combination_value)
+        if max_points == 6: return compare_flushes(player_combination_value)
+        elif max_points == 8: return compare_four_of_a_kind(player_combination_value)
+        elif max_points == 5 or max_points == 9: return compare_straights(player_combination_value)
+        elif max_points == 4: return compare_three_of_a_kind(player_combination_value)
+        elif max_points == 3: return compare_two_pairs(player_combination_value)
+        elif max_points == 2: return compare_pairs(player_combination_value)
 
         
-    return players[0]
+    return [players[0]]

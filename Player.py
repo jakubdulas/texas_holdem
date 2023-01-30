@@ -117,6 +117,16 @@ class Player(pygame.sprite.Sprite):
                 j += 1
                 i = j
             i+=1
+        
+        if points == 2 or points == 3 or points == 4 or points == 8:
+            new_best_combination = []
+            repeated_cards = [card_name for card_name, _ in find_repetitions(best_combination)]
+            for combination_card, table_card in zip(best_combination, cards):
+                if combination_card in self.hand and combination_card.name not in repeated_cards:
+                    new_best_combination.append(table_card)
+                else:
+                    new_best_combination.append(combination_card)
+            best_combination = new_best_combination
 
         return best_combination, points
 

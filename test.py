@@ -3,7 +3,7 @@ from Player import Player
 from constants import *
 import random
 import os
-from utils import choose_winner
+from utils import choose_winner, calculate_combination_strength
 
 os.system('clear')
 
@@ -589,6 +589,316 @@ def check_choose_winner_straight3():
     print("Choose winner Straight 3: ", choose_winner([p1, p2], table_cards=table) == [p1])
 
 
+def check_choose_winner_pair1():
+    p1 = Player(100)
+    hand1 = [
+        Card('K', 'D'),
+        Card('K', 'C')
+    ]
+
+    p2 = Player(100)
+    hand2 = [
+        Card('3', 'H'),
+        Card('3', 'S')
+    ]
+
+    table = [
+        Card('7', 'C'),
+        Card('Q', 'H'),
+        Card('5', 'D'),
+        Card('6', 'C'),
+        Card('A', 'C'),
+    ]
+
+    for c1, c2 in zip(hand1, hand2):
+        p1.add_card(c1)
+        p2.add_card(c2)
+    
+    print("Choose winner Pair 1: ", choose_winner([p1, p2], table_cards=table) == [p1])
+
+
+def check_choose_winner_pair2():
+    p1 = Player(100)
+    hand1 = [
+        Card('3', 'D'),
+        Card('2', 'C')
+    ]
+
+    p2 = Player(100)
+    hand2 = [
+        Card('4', 'H'),
+        Card('2', 'S')
+    ]
+
+    table = [
+        Card('7', 'C'),
+        Card('A', 'H'),
+        Card('5', 'D'),
+        Card('6', 'C'),
+        Card('A', 'C'),
+    ]
+
+    for c1, c2 in zip(hand1, hand2):
+        p1.add_card(c1)
+        p2.add_card(c2)
+    
+    print("Choose winner Pair 2: ", choose_winner([p1, p2], table_cards=table) == [p2])
+
+
+def check_choose_winner_pair3():
+    p1 = Player(100)
+    hand1 = [
+        Card('3', 'D'),
+        Card('9', 'C')
+    ]
+
+    p2 = Player(100)
+    hand2 = [
+        Card('9', 'H'),
+        Card('3', 'S')
+    ]
+
+    table = [
+        Card('2', 'C'),
+        Card('6', 'H'),
+        Card('9', 'D'),
+        Card('10', 'C'),
+        Card('K', 'C'),
+    ]
+
+    for c1, c2 in zip(hand1, hand2):
+        p1.add_card(c1)
+        p2.add_card(c2)
+    
+    print("Choose winner Pair 3: ", choose_winner([p1, p2], table_cards=table) == [p1, p2])
+
+
+def check_choose_winner_two_pairs1():
+    p1 = Player(100)
+    hand1 = [
+        Card('3', 'D'),
+        Card('9', 'C')
+    ]
+
+    p2 = Player(100)
+    hand2 = [
+        Card('9', 'H'),
+        Card('3', 'S')
+    ]
+
+    table = [
+        Card('3', 'C'),
+        Card('6', 'H'),
+        Card('9', 'D'),
+        Card('10', 'C'),
+        Card('K', 'C'),
+    ]
+
+    for c1, c2 in zip(hand1, hand2):
+        p1.add_card(c1)
+        p2.add_card(c2)
+    
+    print("Choose winner Two Pairs 1: ", choose_winner([p1, p2], table_cards=table) == [p1, p2])
+
+
+def check_choose_winner_two_pairs2():
+    p1 = Player(100)
+    hand1 = [
+        Card('9', 'D'),
+        Card('9', 'C')
+    ]
+
+    p2 = Player(100)
+    hand2 = [
+        Card('9', 'H'),
+        Card('3', 'S')
+    ]
+
+    table = [
+        Card('3', 'C'),
+        Card('6', 'H'),
+        Card('10', 'D'),
+        Card('10', 'C'),
+        Card('K', 'C'),
+    ]
+
+    for c1, c2 in zip(hand1, hand2):
+        p1.add_card(c1)
+        p2.add_card(c2)
+    
+    print("Choose winner Two Pairs 2: ", choose_winner([p1, p2], table_cards=table) == [p1])
+
+
+def check_choose_winner_two_pairs3():
+    p1 = Player(100)
+    hand1 = [
+        Card('2', 'D'),
+        Card('A', 'C')
+    ]
+
+    p2 = Player(100)
+    hand2 = [
+        Card('2', 'H'),
+        Card('A', 'S')
+    ]
+
+    table = [
+        Card('3', 'C'),
+        Card('6', 'H'),
+        Card('10', 'D'),
+        Card('10', 'C'),
+        Card('K', 'C'),
+    ]
+
+    for c1, c2 in zip(hand1, hand2):
+        p1.add_card(c1)
+        p2.add_card(c2)
+    
+    print("Choose winner Two Pairs 3: ", choose_winner([p1, p2], table_cards=table) == [p1, p2])
+
+
+def check_choose_winner_three_of_a_kind1():
+    p1 = Player(100)
+    hand1 = [
+        Card('2', 'D'),
+        Card('2', 'C')
+    ]
+
+    p2 = Player(100)
+    hand2 = [
+        Card('3', 'H'),
+        Card('3', 'S')
+    ]
+
+    table = [
+        Card('3', 'C'),
+        Card('2', 'H'),
+        Card('9', 'D'),
+        Card('10', 'C'),
+        Card('K', 'C'),
+    ]
+
+    for c1, c2 in zip(hand1, hand2):
+        p1.add_card(c1)
+        p2.add_card(c2)
+    
+    print("Choose winner Three of a kind 1: ", choose_winner([p1, p2], table_cards=table) == [p2])
+
+
+def check_choose_winner_three_of_a_kind2():
+    p1 = Player(100)
+    hand1 = [
+        Card('3', 'D'),
+        Card('3', 'C')
+    ]
+
+    p2 = Player(100)
+    hand2 = [
+        Card('3', 'H'),
+        Card('3', 'S')
+    ]
+
+    table = [
+        Card('3', 'C'),
+        Card('2', 'H'),
+        Card('9', 'D'),
+        Card('10', 'C'),
+        Card('K', 'C'),
+    ]
+
+    for c1, c2 in zip(hand1, hand2):
+        p1.add_card(c1)
+        p2.add_card(c2)
+    
+    print("Choose winner Three of a kind 2: ", choose_winner([p1, p2], table_cards=table) == [p1, p2])
+
+
+def check_choose_winner_four_of_a_kind1():
+    p1 = Player(100)
+    hand1 = [
+        Card('3', 'H'),
+        Card('3', 'S')
+    ]
+
+    p2 = Player(100)
+    hand2 = [
+        Card('4', 'D'),
+        Card('4', 'C')
+
+    ]
+
+    table = [
+        Card('3', 'C'),
+        Card('3', 'H'),
+        Card('4', 'D'),
+        Card('4', 'C'),
+        Card('K', 'C'),
+    ]
+
+    for c1, c2 in zip(hand1, hand2):
+        p1.add_card(c1)
+        p2.add_card(c2)
+    
+    print("Choose winner Four of a kind 1: ", choose_winner([p1, p2], table_cards=table) == [p2])
+
+
+def check_choose_winner_four_of_a_kind2():
+    p1 = Player(100)
+    hand1 = [
+        Card('K', 'H'),
+        Card('3', 'S')
+    ]
+
+    p2 = Player(100)
+    hand2 = [
+        Card('Q', 'D'),
+        Card('4', 'C')
+
+    ]
+
+    table = [
+        Card('2', 'C'),
+        Card('2', 'H'),
+        Card('2', 'D'),
+        Card('2', 'C'),
+        Card('9', 'C'),
+    ]
+
+    for c1, c2 in zip(hand1, hand2):
+        p1.add_card(c1)
+        p2.add_card(c2)
+    
+    print("Choose winner Four of a kind 2: ", choose_winner([p1, p2], table_cards=table) ==  [p1])
+
+
+def check_choose_winner_flush1():
+    p1 = Player(100)
+    hand1 = [
+        Card('Q', 'H'),
+        Card('3', 'S')
+    ]
+
+    p2 = Player(100)
+    hand2 = [
+        Card('K', 'H'),
+        Card('4', 'C')
+
+    ]
+
+    table = [
+        Card('2', 'H'),
+        Card('4', 'H'),
+        Card('6', 'H'),
+        Card('J', 'H'),
+        Card('9', 'C'),
+    ]
+
+    for c1, c2 in zip(hand1, hand2):
+        p1.add_card(c1)
+        p2.add_card(c2)
+    
+    print("Choose winner Flush: ", choose_winner([p1, p2], table_cards=table) ==  [p2])
+
 
 check_flush_straight()
 check_4of_a_kind()
@@ -609,3 +919,14 @@ check_choose_winner_fh4()
 check_choose_winner_straight1()
 check_choose_winner_straight2()
 check_choose_winner_straight3()
+check_choose_winner_pair1()
+check_choose_winner_pair2()
+check_choose_winner_pair3()
+check_choose_winner_two_pairs1()
+check_choose_winner_two_pairs2()
+check_choose_winner_two_pairs3()
+check_choose_winner_three_of_a_kind1()
+check_choose_winner_three_of_a_kind2()
+check_choose_winner_four_of_a_kind1()
+check_choose_winner_four_of_a_kind2()
+check_choose_winner_flush1()
