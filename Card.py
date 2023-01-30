@@ -12,7 +12,7 @@ class Card(pygame.sprite.Sprite):
 
     def __init__(self, name, suit):
         super(Card, self).__init__()
-        self.is_hidden = False
+        self.is_hidden = True
         self.name = name
         self.suit = suit
 

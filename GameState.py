@@ -9,3 +9,4 @@ class GameState(Enum):
   FLOP = 4
   TURN = 5
   RIVER = 6
+  ALL_IN = 7

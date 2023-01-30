@@ -14,12 +14,22 @@ from Role import Role
 
 
 def announce_winner():
-    global gameState
+    global gameState, winner_text, total_pot
     if len(set(table_cards)) == 5 and None not in table_cards:
         winners = choose_winner(players, table_cards)
+        text = f"${total_pot} wygrywa: "
+        winners_text = ""
+        win_per_player = round(total_pot/len(winners), 2)
+        total_pot = 0
+
         for winner in winners:
-            print(winner.name)
+            winners_text += winner.name + " "
+            winner.money += win_per_player
+        
+        winner_text = create_text(text+winners_text)
+
         gameState = GameState.ENDED
+
 
 def flop():
     global deck
@@ -60,30 +70,32 @@ def next_players_move_generator():
             i = 0
 
 
-def get_next_player(player):
-    """
-    returns next player
-    """
-    global players
-    idx = players.index(player)
-    if idx < len(players) - 1:
-        return players[idx+1]
-    return players[0]
-
-
 def handle_action(action, player):
     """
     Handles action of a player
     """
-    global biggest_call, player_biggest_call, total_pot
+    global biggest_call, player_biggest_call, total_pot, players_move
 
-    if action == Action.CHECK:
+    if action == Action.CHECK and player.money_in_pot == biggest_call:
+        if (player.role == Role.SB and biggest_call < 1) or \
+            (player.role == Role.BB and biggest_call < 2):
+            return False
         player.check()
+        return True
     if action == Action.FOLD:
+        if (player.role == Role.SB and biggest_call < 1) or \
+            (player.role == Role.BB and biggest_call < 2):
+            return False
+
+        players_move = next(players_move_gen)
         player.fold()
-        player_biggest_call = get_next_player(player)
+        return False
     if action == Action.RAISE:
-        player.raise_()
+        total_pot += player.raise_(biggest_call)
+        if biggest_call < player.money_in_pot:
+            biggest_call = player.money_in_pot
+            player_biggest_call = player
+        return True
     if action == Action.CALL:
         m = 0
         if player.role == Role.SB and biggest_call < 1:
@@ -97,6 +109,8 @@ def handle_action(action, player):
         if biggest_call < player.money_in_pot:
             biggest_call = player.money_in_pot
             player_biggest_call = player
+        return True
+    return False
 
 
 def reset_roles(players):
@@ -120,6 +134,33 @@ def set_roles(players, players_move):
         }
         role = str_to_role[role]
         player.set_role(role)
+
+    
+# def reset_game():
+#     global deck, gameState,total_pot, players, table_cards, player_gen, players_move_gen, \
+#             flop_gen, deal_num, t, biggest_call, player_biggest_call, i, winner_text, dealer_idx
+
+#     deck = []
+#     for suit in SUITS:
+#         for name in NAMES:
+#             deck.append(Card(name, suit))
+#     random.shuffle(deck)
+
+#     gameState = GameState.DEALING
+#     total_pot = 0
+#     players = []
+#     table_cards = [None for _ in range(5)]
+#     player_gen = player_generator()
+#     players_move_gen = next_players_move_generator()
+#     flop_gen = flop()
+#     deal_num = 0
+#     t = 0
+#     biggest_call = 0
+#     player_biggest_call = None
+#     i = 0
+#     winner_text = None
+    
+#     dealer_idx += 1
 
 
 pygame.init()
@@ -158,11 +199,12 @@ t = 0
 biggest_call = 0
 player_biggest_call = None
 i = 0
+winner_text = None
 
 # buttons
 check_btn = create_button('check', (0, 128, 0))
 fold_btn = create_button('fold', (128, 0, 0))
-raise_btn = create_button('raise', (0, 0, 128))
+raise_btn = create_button('raise $5', (0, 0, 128))
 call_btn = create_button('call', (128, 0, 128))
 buttons = [
     check_btn,
@@ -197,16 +239,16 @@ if __name__ == '__main__':
                         idx = buttons_rect.index(clicked_rects[0])
                         action = idx_to_action[idx]
                     
-                        handle_action(action, players_move)
-                        players_move = next(players_move_gen)
+                        if handle_action(action, players_move):
+                            players_move = next(players_move_gen)
 
-                        if players_move == player_biggest_call and action != Action.FOLD:
-                            if len(set(table_cards)) == 1:
-                                gameState = GameState.FLOP
-                            elif len(set(table_cards)) == 4:
-                                gameState = GameState.TURN
-                            elif len(set(table_cards)) == 5 and None in table_cards:
-                                gameState = GameState.RIVER
+                            if players_move == player_biggest_call and action != Action.FOLD:
+                                if len(set(table_cards)) == 1:
+                                    gameState = GameState.FLOP
+                                elif len(set(table_cards)) == 4:
+                                    gameState = GameState.TURN
+                                elif len(set(table_cards)) == 5 and None in table_cards:
+                                    gameState = GameState.RIVER
                         
         scr.blit(background, (0, 0))
 
@@ -254,29 +296,47 @@ if __name__ == '__main__':
         if gameState == GameState.FLOP:
             try:
                 card = next(flop_gen)
+                card.show()
                 table_cards[i] = card
                 i += 1
             except:
                 gameState = GameState.PLAYING
                 flop_gen = flop()
                 t = 0
+                i = 0
             pygame.time.delay(int(1000*t))
             t=TIME_DELAY
 
         if gameState == GameState.TURN:
             card = deck.pop(-1)
+            card.show()
             table_cards[3] = card
             gameState = GameState.PLAYING
 
         if gameState == GameState.RIVER:
             card = deck.pop(-1)
+            card.show()
             table_cards[4] = card
             gameState = GameState.PLAYING
+        
+        if gameState == GameState.ALL_IN:
+            if None not in table_cards:
+                gameState = GameState.PLAYING
+                t = 0
+            else:
+                pygame.time.delay(int(1000*t))
+                card = deck.pop(-1)
+                idx = table_cards.index(None)
+                table_cards[idx] = card
+                t=TIME_DELAY
+
 
         for p in players:
             p.display(scr)
 
-        if gameState != GameState.ENDED:
+        if gameState == GameState.ENDED:
+            display_in_center(winner_text, scr, dy=-300)
+        else:
             announce_winner()
         
         clock.tick(30)

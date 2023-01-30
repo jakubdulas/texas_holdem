@@ -78,6 +78,15 @@ def create_button(text, color):
     return button
 
 
+def create_text(text):
+    """
+    Creates text
+    """
+    font = pygame.font.Font(None, 36)
+    text = font.render(text, 1, (241, 225, 127))
+    return text
+
+
 def find_repetitions(cards):
     """
     Returns tuples containing a card and number of its repetition if the card occurs more than 2 times.

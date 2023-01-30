@@ -19,6 +19,7 @@ class Player(pygame.sprite.Sprite):
         for card in self.hand:
             card.set_position((x, y))
             card.display(scr)
+            card.show() # Odkomentowac pozniej
             x -= 40
         
         text = f"{self.name} ${self.money} {self.str_role}"
@@ -29,13 +30,12 @@ class Player(pygame.sprite.Sprite):
 
         bar = pygame.Surface((width, height))
 
-        if not self.is_its_move:
-            bar.fill((200, 200 ,200))
-        else:
-            # if self.out_of_game:
-            #     bar.fill((250, 70, 70))
-            # else:
+        if self.is_its_move:
             bar.fill((0, 100, 0))
+        elif self.out_of_game:
+            bar.fill((250, 70, 70))
+        else:
+            bar.fill((200, 200 ,200))
 
         text_rect = text.get_rect(center=(width/2, height/2))
         bar.blit(text, text_rect)
@@ -204,5 +204,9 @@ class Player(pygame.sprite.Sprite):
     def check(self):
         self.finish_move()
 
-    def raise_(self):
+    def raise_(self, biggest_call, amount=5):
+        to_call = biggest_call - self.money_in_pot
+        self.money_in_pot += to_call + amount
+        self.money -= to_call + amount
         self.finish_move()
+        return to_call + amount
