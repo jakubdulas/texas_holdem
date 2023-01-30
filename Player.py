@@ -3,7 +3,7 @@ from utils import *
 from Role import Role
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, name, money, x, y):
+    def __init__(self, money, name="", x=0, y=0):
         super(Player, self).__init__()
         self.rect = pygame.Rect(x, y, 50, 50)
         self.hand = []
@@ -58,7 +58,7 @@ class Player(pygame.sprite.Sprite):
 
     def add_card(self, card):
         self.hand.append(card)
-        card.rotate(-30 if len(self.hand) == 1 else 30)
+        # card.rotate(-30 if len(self.hand) == 1 else 30)
 
     def get_combination_and_hand_value(self, cards):
         """
@@ -141,6 +141,19 @@ class Player(pygame.sprite.Sprite):
 
         # high card
         return 1
+
+    def choose_high_card(self, combination):
+        hand = list(map(lambda x: x.strength, self.hand))
+        combination = list(map(lambda x: x.strength, combination))
+        for card in hand.copy():
+            if card in combination:
+                combination.pop(combination.index(card))
+                hand.pop(hand.index(card))
+
+        hand.sort(reverse=True)
+
+        if len(hand) == 0: return 0
+        else: return hand[0]
 
     def set_role(self, role):
         self.role = role

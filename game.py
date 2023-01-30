@@ -14,8 +14,9 @@ from Role import Role
 
 
 def announce_winner():
+    global gameState
     if len(set(table_cards)) == 5 and None not in table_cards:
-        print('ANNOUNCE WINNER')
+        pass
 
 def flop():
     global deck
@@ -30,7 +31,7 @@ def player_generator(players=[]):
     if not players:
         for pos, name in zip(SEATS, PLAYER_NAMES):
             x, y = pos
-            player_obj = Player(name, 100, x, y)
+            player_obj = Player(100, name, x, y)
             players.append(player_obj)
             yield player_obj
     else:
@@ -130,7 +131,7 @@ background = pygame.Surface(WINDOW_SIZE)
 background.fill((0, 0, 0))
 
 # adding table
-poker_table = pygame.image.load('images/table.png')
+poker_table = pygame.image.load('images/table.tiff')
 
 # creating deck
 deck = []
@@ -272,8 +273,9 @@ if __name__ == '__main__':
         for p in players:
             p.display(scr)
 
-
         announce_winner()
         
         clock.tick(30)
         pygame.display.flip()
+
+pygame.quit()

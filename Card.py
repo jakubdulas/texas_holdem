@@ -3,6 +3,12 @@ import pygame
 
 class Card(pygame.sprite.Sprite):
     SIZE = (72, 100)
+    NAME_TO_STRENGTH = {
+        'A': 14,
+        'K': 13,
+        'Q': 12,
+        'J': 11,
+    }
 
     def __init__(self, name, suit):
         super(Card, self).__init__()
@@ -24,13 +30,7 @@ class Card(pygame.sprite.Sprite):
 
     @property
     def strength(self):
-        name_to_strength = {
-            'A': 14,
-            'K': 13,
-            'Q': 12,
-            'J': 11,
-        }
-        strength = name_to_strength.get(self.name, None)
+        strength = self.NAME_TO_STRENGTH.get(self.name, None)
         if strength is None:
             strength = int(self.name)
 
@@ -57,3 +57,10 @@ class Card(pygame.sprite.Sprite):
     
     def get_rect(self):
         return self.rect
+
+    @classmethod
+    def get_strength(cls, card_str):
+        strength = cls.NAME_TO_STRENGTH.get(card_str, None)
+        if strength is None:
+            strength = int(card_str)
+        return strength

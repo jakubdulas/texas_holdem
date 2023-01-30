@@ -85,6 +85,7 @@ def find_repetitions(cards):
     names = list(card.name for card in cards)
     counter = Counter(names)
     most_common = list(filter(lambda x: x[1] > 1, counter.most_common(5)))
+    most_common.sort(key=lambda x: x[1], reverse=True)
     return most_common
 
 
@@ -110,3 +111,64 @@ def is_flush(cards):
     """
     suits = [card.suit for card in cards]
     return len(set(suits)) == 1
+
+
+def compare_full_houses(player_list):
+    """
+    Compares full houses and returns the players with the strongest ones.
+    """
+    winners = []
+    best_toak_value = -1
+    best_pair_value = -1
+    high_card = -1
+    for idx, (player, (combination, _)) in enumerate(player_list):
+        toak, pair = find_repetitions(combination)
+
+        if idx == 0:
+            best_toak_value = Card.get_strength(toak[0]) * toak[1]
+            best_pair_value = Card.get_strength(pair[0]) * pair[1]
+            high_card = player.choose_high_card(combination)
+            winners.append(player)
+            continue
+
+        temp_hand_value = Card.get_strength(toak[0]) * toak[1]
+
+        if temp_hand_value > best_toak_value:
+            winners = []
+            winners.append(player)
+            best_toak_value = temp_hand_value
+        elif temp_hand_value == best_toak_value:
+            temp_hand_value = Card.get_strength(pair[0]) * pair[1]
+            if temp_hand_value > best_pair_value:
+                winners = []
+                winners.append(player)
+                best_pair_value = temp_hand_value
+            elif temp_hand_value == best_pair_value:
+                temp_high_card = player.choose_high_card(combination)
+                if temp_high_card > high_card:
+                    winners = []
+                    winners.append(player)
+                    high_card = temp_high_card
+                elif temp_high_card == high_card:
+                    winners.append(player)
+    return winners
+        
+def choose_winner(players, table_cards):
+    """
+    Returns list of winners
+    """
+    winners = []
+    player_list = [(player, player.get_combination_and_hand_value(table_cards)) 
+                    for player in players if not player.out_of_game]
+    player_list.sort(key=lambda x: x[1][1], reverse=True)
+    max_points = player_list[0][1][1]
+    player_list = list(filter(lambda x: x[1][1] == max_points, player_list))
+
+    if len(player_list) != 1:
+        # if players have full house
+        
+        if max_points == 7: return compare_full_houses(player_list)
+
+
+        
+    return players[0]

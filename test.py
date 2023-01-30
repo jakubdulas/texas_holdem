@@ -3,6 +3,7 @@ from Player import Player
 from constants import *
 import random
 import os
+from utils import choose_winner
 
 os.system('clear')
 
@@ -330,6 +331,152 @@ def check_high_card():
     print("High card: ", all(results))
 
 
+def check_highest_card1():
+    player = Player(100)
+    hand = [
+        Card('8', 'D'),
+        Card('K', 'H'),
+    ]
+
+    combination = [
+        Card('A', 'D'),
+        Card('A', 'D'),
+        Card('A', 'C'),
+        Card('8', 'D'),
+        Card('8', 'H'),
+    ]
+
+    for card in hand:
+        player.add_card(card)
+    
+    print("High card 1: ", player.choose_high_card(combination) == 13)
+
+
+def check_highest_card2():
+    player = Player(100)
+    hand = [
+        Card('Q', 'D'),
+        Card('K', 'H'),
+    ]
+
+    combination = [
+        Card('A', 'D'),
+        Card('A', 'D'),
+        Card('A', 'C'),
+        Card('8', 'D'),
+        Card('8', 'H'),
+    ]
+
+    for card in hand:
+        player.add_card(card)
+    
+    print("High card 2: ", player.choose_high_card(combination) == 13)
+
+
+def check_highest_card3():
+    player = Player(100)
+    hand = [
+        Card('8', 'D'),
+        Card('8', 'H'),
+    ]
+
+    combination = [
+        Card('A', 'D'),
+        Card('A', 'D'),
+        Card('A', 'C'),
+        Card('8', 'D'),
+        Card('8', 'H'),
+    ]
+
+    for card in hand:
+        player.add_card(card)
+    
+    print("High card 3: ", player.choose_high_card(combination) == 0)
+
+def check_choose_winner_fh1():
+    p1 = Player(100)
+    hand1 = [
+        Card('K', 'D'),
+        Card('2', 'C')
+    ]
+
+    p2 = Player(100)
+    hand2 = [
+        Card('2', 'D'),
+        Card('2', 'C')
+    ]
+
+    table = [
+        Card('A', 'C'),
+        Card('A', 'H'),
+        Card('A', 'D'),
+        Card('2', 'C'),
+        Card('8', 'C'),
+    ]
+
+    for c1, c2 in zip(hand1, hand2):
+        p1.add_card(c1)
+        p2.add_card(c2)
+    
+    print("Choose winner Full House 1: ", choose_winner([p1, p2], table_cards=table) == [p1])
+
+
+def check_choose_winner_fh2():
+    p1 = Player(100)
+    hand1 = [
+        Card('2', 'D'),
+        Card('2', 'C')
+    ]
+
+    p2 = Player(100)
+    hand2 = [
+        Card('K', 'D'),
+        Card('K', 'C')
+    ]
+
+    table = [
+        Card('A', 'C'),
+        Card('A', 'H'),
+        Card('A', 'D'),
+        Card('2', 'C'),
+        Card('8', 'C'),
+    ]
+
+    for c1, c2 in zip(hand1, hand2):
+        p1.add_card(c1)
+        p2.add_card(c2)
+    
+    print("Choose winner Full House 2: ", choose_winner([p1, p2], table_cards=table) == [p2])
+
+
+def check_choose_winner_fh3():
+    p1 = Player(100)
+    hand1 = [
+        Card('2', 'D'),
+        Card('2', 'C')
+    ]
+
+    p2 = Player(100)
+    hand2 = [
+        Card('K', 'D'),
+        Card('K', 'C')
+    ]
+
+    table = [
+        Card('A', 'C'),
+        Card('A', 'H'),
+        Card('A', 'D'),
+        Card('2', 'C'),
+        Card('8', 'C'),
+    ]
+
+    for c1, c2 in zip(hand1, hand2):
+        p1.add_card(c1)
+        p2.add_card(c2)
+    
+    print("Choose winner Full House 2: ", choose_winner([p1, p2], table_cards=table) == [p2])
+
+
 check_flush_straight()
 check_4of_a_kind()
 check_fh()
@@ -339,3 +486,8 @@ check_3of_a_kind()
 check_2_pairs()
 check_pair()
 check_high_card()
+check_highest_card1()
+check_highest_card2()
+check_highest_card3()
+check_choose_winner_fh1()
+check_choose_winner_fh2()
