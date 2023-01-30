@@ -6,3 +6,6 @@ class GameState(Enum):
   DEALING = 1
   ENDED = 2
   SHOW_PLAYERS = 3
+  FLOP = 4
+  TURN = 5
+  RIVER = 6

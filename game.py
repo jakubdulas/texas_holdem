@@ -9,9 +9,18 @@ from utils import *
 from Card import Card
 from Player import Player
 from GameState import GameState
-import time
 from Action import Action
 from Role import Role
+
+
+def announce_winner():
+    if len(set(table_cards)) == 5 and None not in table_cards:
+        print('ANNOUNCE WINNER')
+
+def flop():
+    global deck
+    for _ in range(3):
+        yield deck.pop(-1)
 
 
 def player_generator(players=[]):
@@ -47,6 +56,17 @@ def next_players_move_generator():
             i = 0
 
 
+def get_next_player(player):
+    """
+    returns next player
+    """
+    global players
+    idx = players.index(player)
+    if idx < len(players) - 1:
+        return players[idx+1]
+    return players[0]
+
+
 def handle_action(action, player):
     """
     Handles action of a player
@@ -57,6 +77,7 @@ def handle_action(action, player):
         player.check()
     if action == Action.FOLD:
         player.fold()
+        player_biggest_call = get_next_player(player)
     if action == Action.RAISE:
         player.raise_()
     if action == Action.CALL:
@@ -67,7 +88,7 @@ def handle_action(action, player):
             m = player.call(2)
         else:
             m = player.call(biggest_call)
-            
+
         total_pot += m
         if biggest_call < player.money_in_pot:
             biggest_call = player.money_in_pot
@@ -127,11 +148,12 @@ players = []
 table_cards = [None for _ in range(5)]
 player_gen = player_generator()
 players_move_gen = next_players_move_generator()
+flop_gen = flop()
 deal_num = 0
 t = 0
 biggest_call = 0
 player_biggest_call = None
-
+i = 0
 
 # buttons
 check_btn = create_button('check', (0, 128, 0))
@@ -155,10 +177,11 @@ buttons_rect = []
 
 if __name__ == '__main__':
     while True:
-        if gameState == GameState.PLAYING:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    sys.exit()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
+
+            if gameState == GameState.PLAYING:
                 if event.type == pygame.MOUSEBUTTONUP:
                     players_in_game = [player for player in players if not player.out_of_game]
 
@@ -173,10 +196,14 @@ if __name__ == '__main__':
                         handle_action(action, players_move)
                         players_move = next(players_move_gen)
 
-                        # if players_move.money_in_pot == biggest_call:
-                        #     print("Od poczatku")
-
-
+                        if players_move == player_biggest_call and action != Action.FOLD:
+                            if len(set(table_cards)) == 1:
+                                gameState = GameState.FLOP
+                            elif len(set(table_cards)) == 4:
+                                gameState = GameState.TURN
+                            elif len(set(table_cards)) == 5 and None in table_cards:
+                                gameState = GameState.RIVER
+                        
         scr.blit(background, (0, 0))
 
         display_in_center(poker_table, scr)
@@ -201,10 +228,11 @@ if __name__ == '__main__':
                 gameState = GameState.PLAYING
                 players_move = next(players_move_gen)
                 set_roles(players, players_move)
+                player_biggest_call = player
             else:
                 card = deck.pop(-1)
                 player.add_card(card)
-                time.sleep(t)
+                pygame.time.delay(int(1000*t))
                 t=TIME_DELAY
 
         if gameState == GameState.SHOW_PLAYERS:
@@ -216,10 +244,36 @@ if __name__ == '__main__':
                 player_gen = player_generator()
                 t = 0
 
-            time.sleep(t)
+            pygame.time.delay(int(1000*t))
             t=TIME_DELAY
+
+        if gameState == GameState.FLOP:
+            try:
+                card = next(flop_gen)
+                table_cards[i] = card
+                i += 1
+            except:
+                gameState = GameState.PLAYING
+                flop_gen = flop()
+                t = 0
+            pygame.time.delay(int(1000*t))
+            t=TIME_DELAY
+
+        if gameState == GameState.TURN:
+            card = deck.pop(-1)
+            table_cards[3] = card
+            gameState = GameState.PLAYING
+
+        if gameState == GameState.RIVER:
+            card = deck.pop(-1)
+            table_cards[4] = card
+            gameState = GameState.PLAYING
 
         for p in players:
             p.display(scr)
 
+
+        announce_winner()
+        
+        clock.tick(30)
         pygame.display.flip()
