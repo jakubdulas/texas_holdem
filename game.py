@@ -136,31 +136,34 @@ def set_roles(players, players_move):
         player.set_role(role)
 
     
-# def reset_game():
-#     global deck, gameState,total_pot, players, table_cards, player_gen, players_move_gen, \
-#             flop_gen, deal_num, t, biggest_call, player_biggest_call, i, winner_text, dealer_idx
+def reset_game():
+    global deck, gameState,total_pot, players, table_cards, dealer_idx, deal_num, biggest_call, \
+        player_gen, players_move_gen, t
 
-#     deck = []
-#     for suit in SUITS:
-#         for name in NAMES:
-#             deck.append(Card(name, suit))
-#     random.shuffle(deck)
+    deck = []
+    for suit in SUITS:
+        for name in NAMES:
+            deck.append(Card(name, suit))
+    random.shuffle(deck)
 
-#     gameState = GameState.DEALING
-#     total_pot = 0
-#     players = []
-#     table_cards = [None for _ in range(5)]
-#     player_gen = player_generator()
-#     players_move_gen = next_players_move_generator()
-#     flop_gen = flop()
-#     deal_num = 0
-#     t = 0
-#     biggest_call = 0
-#     player_biggest_call = None
-#     i = 0
-#     winner_text = None
-    
-#     dealer_idx += 1
+    for player in players:
+        player.reset()
+
+    gameState = GameState.DEALING
+    total_pot = 0
+
+    table_cards = [None for _ in range(5)]
+
+    dealer_idx += 1
+    if dealer_idx == len(players): dealer_idx = 0
+    set_deck_position(deck)
+    biggest_call = 0
+    deal_num = 0
+
+    t = 0
+
+    player_gen = player_generator()
+    players_move_gen = next_players_move_generator()
 
 
 pygame.init()
@@ -200,6 +203,8 @@ biggest_call = 0
 player_biggest_call = None
 i = 0
 winner_text = None
+dealer_idx = 0
+iters = 0
 
 # buttons
 check_btn = create_button('check', (0, 128, 0))
@@ -264,7 +269,6 @@ if __name__ == '__main__':
         if gameState == GameState.DEALING:
             try:
                 player = next(player_gen)
-                # print(player.name)
             except:
                 deal_num += 1
                 player_gen = player_generator()
@@ -273,8 +277,11 @@ if __name__ == '__main__':
             if deal_num > 1:
                 gameState = GameState.PLAYING
                 players_move = next(players_move_gen)
+                while players[dealer_idx] != players_move:
+                    players_move.is_its_move = False
+                    players_move = next(players_move_gen)
                 set_roles(players, players_move)
-                player_biggest_call = player
+                player_biggest_call = players_move
             else:
                 card = deck.pop(-1)
                 player.add_card(card)
@@ -330,12 +337,15 @@ if __name__ == '__main__':
                 table_cards[idx] = card
                 t=TIME_DELAY
 
-
         for p in players:
             p.display(scr)
 
         if gameState == GameState.ENDED:
+            iters += 1
             display_in_center(winner_text, scr, dy=-300)
+            if iters == 100:
+                reset_game()
+                iters = 0
         else:
             announce_winner()
         

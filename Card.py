@@ -17,7 +17,7 @@ class Card(pygame.sprite.Sprite):
         self.suit = suit
 
         self.image_front = pygame.image.load(f'images/Cards_Dark/{suit}{name}.png')
-        self.image_back = pygame.image.load('images/Cards_Dark/Back_Blue.png')
+        self.image_back = pygame.image.load('images/back.tiff')
 
         self.image_front = pygame.transform.scale(self.image_front, self.SIZE)
         self.image_back = pygame.transform.scale(self.image_back, self.SIZE)

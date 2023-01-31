@@ -14,6 +14,15 @@ class Player(pygame.sprite.Sprite):
         self.role = None
         self.money_in_pot = 0
 
+
+    def reset(self):
+        self.out_of_game = False
+        self.is_its_move = False
+        self.role = None
+        self.money_in_pot = 0
+        self.hand = []
+
+
     def display(self, scr):
         x, y = self.rect.x + 20, self.rect.y
         for card in self.hand:
