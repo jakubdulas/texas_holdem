@@ -302,13 +302,15 @@ if __name__ == '__main__':
                 gameState = GameState.PLAYING
                 players_move = next(players_move_gen)
                 players_in_game = [player for player in players if not player.out_of_game]
+
                 if dealer_idx >= len(players_in_game):
                     dealer_idx = 0
-                while players[dealer_idx].out_of_game:
+
+                while players_in_game[dealer_idx].out_of_game:
                     dealer_idx += 1
                     if dealer_idx == len(players_in_game):
                         dealer_idx = 0
-                while players[dealer_idx] != players_move:
+                while players_in_game[dealer_idx] != players_move:
                     players_move.is_its_move = False
                     players_move = next(players_move_gen)
                 set_roles(players, players_move)
