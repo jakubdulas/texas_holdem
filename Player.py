@@ -1,6 +1,7 @@
 import pygame
 from utils import *
 from Role import Role
+from constants import WINDOW_SIZE
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, money, name="", x=0, y=0):
@@ -16,7 +17,10 @@ class Player(pygame.sprite.Sprite):
 
 
     def reset(self):
-        self.out_of_game = False
+        if self.money == 0:
+            self.out_of_game = True
+        else:
+            self.out_of_game = False
         self.is_its_move = False
         self.role = None
         self.money_in_pot = 0
@@ -28,7 +32,7 @@ class Player(pygame.sprite.Sprite):
         for card in self.hand:
             card.set_position((x, y))
             card.display(scr)
-            card.show() # Odkomentowac pozniej
+            card.show()
             x -= 40
         
         text = f"{self.name} ${self.money} {self.str_role}"
@@ -50,6 +54,10 @@ class Player(pygame.sprite.Sprite):
         bar.blit(text, text_rect)
 
         x = self.rect.x - bar.get_width()/2 + 50
+        if x < 0:
+            x = 10
+        elif x + bar.get_width() > WINDOW_SIZE[0]:
+            x = WINDOW_SIZE[0] - bar.get_width() - 10
         scr.blit(bar, (x, y-40))
 
     def set_role(self, role):
@@ -67,7 +75,7 @@ class Player(pygame.sprite.Sprite):
 
     def add_card(self, card):
         self.hand.append(card)
-        card.rotate(-30 if len(self.hand) == 1 else 30)
+        # card.rotate(-30 if len(self.hand) == 1 else 30)
 
     def get_combination_and_hand_value(self, cards):
         """
@@ -126,6 +134,9 @@ class Player(pygame.sprite.Sprite):
                 j += 1
                 i = j
             i+=1
+
+        if points == 1:
+            return cards, 1
         
         if points == 2 or points == 3 or points == 4 or points == 8:
             new_best_combination = []
@@ -185,7 +196,7 @@ class Player(pygame.sprite.Sprite):
         hand.sort(reverse=True)
 
         if len(hand) == 0: return 0
-        else: return hand[0]
+        return hand[0]
 
     def set_role(self, role):
         self.role = role
@@ -205,8 +216,16 @@ class Player(pygame.sprite.Sprite):
         return how much money a player gave to pot
         """
         to_call = biggest_call - self.money_in_pot
+
+        if to_call < 0:
+            to_call = biggest_call
+
+        if self.money - to_call < 0:
+            to_call = self.money
+
         self.money_in_pot += to_call
         self.money -= to_call
+
         self.finish_move()
         return to_call
 
@@ -214,8 +233,5 @@ class Player(pygame.sprite.Sprite):
         self.finish_move()
 
     def raise_(self, biggest_call, amount=5):
-        to_call = biggest_call - self.money_in_pot
-        self.money_in_pot += to_call + amount
-        self.money -= to_call + amount
-        self.finish_move()
-        return to_call + amount
+        biggest_call += amount
+        return self.call(biggest_call)

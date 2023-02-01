@@ -60,6 +60,8 @@ class Card(pygame.sprite.Sprite):
 
     @classmethod
     def get_strength(cls, card_str):
+        if type(card_str) == cls:
+            card_str = card_str.name
         strength = cls.NAME_TO_STRENGTH.get(card_str, None)
         if strength is None:
             strength = int(card_str)

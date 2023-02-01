@@ -28,6 +28,10 @@ def announce_winner():
         
         winner_text = create_text(text+winners_text)
 
+        for player in players:
+            if player.money == 0:
+                player.out_of_game = True
+
         gameState = GameState.ENDED
 
 
@@ -49,12 +53,13 @@ def player_generator(players=[]):
             yield player_obj
     else:
         for player in players:
-            yield player
+            if not player.out_of_game:
+                yield player
 
 
 def next_players_move_generator():
     """
-    yields Player object on demand
+    yields Player object on demand and starts its move
     """
     global players
     i = 0
@@ -74,7 +79,7 @@ def handle_action(action, player):
     """
     Handles action of a player
     """
-    global biggest_call, player_biggest_call, total_pot, players_move
+    global biggest_call, player_biggest_call, total_pot, players_move, gameState, players_in_game
 
     if action == Action.CHECK and player.money_in_pot == biggest_call:
         if (player.role == Role.SB and biggest_call < 1) or \
@@ -88,13 +93,18 @@ def handle_action(action, player):
             return False
 
         players_move = next(players_move_gen)
+
+        if players_move.money == 0:
+            gameState = GameState.ALL_IN
+
         player.fold()
         return False
-    if action == Action.RAISE:
+    if action == Action.RAISE and not any(list(map(lambda x: x.money == 0, players_in_game))):
         total_pot += player.raise_(biggest_call)
-        if biggest_call < player.money_in_pot:
+        if biggest_call < player.money_in_pot or player.money == 0:
             biggest_call = player.money_in_pot
             player_biggest_call = player
+
         return True
     if action == Action.CALL:
         m = 0
@@ -106,9 +116,10 @@ def handle_action(action, player):
             m = player.call(biggest_call)
 
         total_pot += m
-        if biggest_call < player.money_in_pot:
+        if biggest_call < player.money_in_pot or player.money == 0:
             biggest_call = player.money_in_pot
             player_biggest_call = player
+
         return True
     return False
 
@@ -120,10 +131,14 @@ def reset_roles(players):
 
 def set_roles(players, players_move):
     reset_roles(players)
+    players = [player for player in players if not player.out_of_game]
     start = players.index(players_move)
     players_to_get_role = players[start:]
     if len(players_to_get_role) > len(ROLES):
-        for player in players[:len(players_to_get_role)-len(ROLES)]:
+        players_to_get_role = players_to_get_role[:3]
+    elif len(players_to_get_role) < len(ROLES):
+        stop = len(ROLES) - len(players_to_get_role)
+        for player in players[:stop]:
             players_to_get_role.append(player)
     
     for player, role in zip(players_to_get_role, ROLES):
@@ -247,7 +262,10 @@ if __name__ == '__main__':
                         if handle_action(action, players_move):
                             players_move = next(players_move_gen)
 
-                            if players_move == player_biggest_call and action != Action.FOLD:
+                            if players_move.money == 0:
+                                gameState = GameState.ALL_IN
+
+                            elif players_move == player_biggest_call and action != Action.FOLD:
                                 if len(set(table_cards)) == 1:
                                     gameState = GameState.FLOP
                                 elif len(set(table_cards)) == 4:
@@ -258,6 +276,12 @@ if __name__ == '__main__':
         scr.blit(background, (0, 0))
 
         display_in_center(poker_table, scr)
+
+        if GameState.END_GAME_SCREEN == gameState:
+            clock.tick(30)
+            pygame.display.flip()
+            continue
+
         display_cards(table_cards, scr)
         display_pot(total_pot, scr)
 
@@ -277,6 +301,13 @@ if __name__ == '__main__':
             if deal_num > 1:
                 gameState = GameState.PLAYING
                 players_move = next(players_move_gen)
+                players_in_game = [player for player in players if not player.out_of_game]
+                if dealer_idx >= len(players_in_game):
+                    dealer_idx = 0
+                while players[dealer_idx].out_of_game:
+                    dealer_idx += 1
+                    if dealer_idx == len(players_in_game):
+                        dealer_idx = 0
                 while players[dealer_idx] != players_move:
                     players_move.is_its_move = False
                     players_move = next(players_move_gen)
@@ -334,6 +365,7 @@ if __name__ == '__main__':
                 pygame.time.delay(int(1000*t))
                 card = deck.pop(-1)
                 idx = table_cards.index(None)
+                card.show()
                 table_cards[idx] = card
                 t=TIME_DELAY
 
@@ -346,6 +378,9 @@ if __name__ == '__main__':
             if iters == 100:
                 reset_game()
                 iters = 0
+                players_in_game = [player for player in players if not player.out_of_game]
+                if len(players_in_game) == 1:
+                    gameState = GameState.END_GAME_SCREEN
         else:
             announce_winner()
         
