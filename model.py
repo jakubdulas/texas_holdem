@@ -29,6 +29,9 @@ def build_model():
     x = Dense(128, activation="relu")(x)
     x = Dense(128, activation="relu")(x)
     x = Dense(256, activation="relu")(x)
+    x = Dense(512, activation="relu")(x)
+    x = Dense(512, activation="relu")(x)
+    x = Dense(256, activation="relu")(x)
     x = Dense(128, activation="relu")(x)
     x = Dense(128, activation="relu")(x)
     x = Dense(64, activation="relu")(x)
@@ -49,6 +52,7 @@ if __name__ == "__main__":
     model = build_model()
     
     model.compile(loss="categorical_crossentropy", optimizer='adam')
+    model.summary()
 
     pred = model.predict([input_data])
 

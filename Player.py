@@ -75,7 +75,7 @@ class Player(pygame.sprite.Sprite):
 
     def add_card(self, card):
         self.hand.append(card)
-        # card.rotate(-30 if len(self.hand) == 1 else 30)
+        card.rotate(-30 if len(self.hand) == 1 else 30)
 
     def get_combination_and_hand_value(self, cards):
         """
