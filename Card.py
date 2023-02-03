@@ -36,6 +36,10 @@ class Card(pygame.sprite.Sprite):
 
         return strength
 
+    
+    def tokenize(self, token):
+        self.token = token
+
     def set_position(self, position):
         self.rect.x = position[0]
         self.rect.y = position[1]

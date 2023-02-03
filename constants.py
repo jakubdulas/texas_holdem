@@ -18,7 +18,7 @@ SEATS = [
 PLAYER_NAMES = [
     "Bob",
     "Jake",
-    "Kuba",
+    "You",
     "Tom",
     "Rob",
     "Mike"

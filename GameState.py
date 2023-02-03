@@ -2,7 +2,7 @@ from enum import Enum
 
 
 class GameState(Enum):
-  PLAYING = 0
+  BETTING = 0
   DEALING = 1
   ENDED = 2
   SHOW_PLAYERS = 3
@@ -10,4 +10,5 @@ class GameState(Enum):
   TURN = 5
   RIVER = 6
   ALL_IN = 7
+  # END_GAME_SCREEN = 8
   END_GAME_SCREEN = 8

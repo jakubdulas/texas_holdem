@@ -2,6 +2,8 @@ import pygame
 from utils import *
 from Role import Role
 from constants import WINDOW_SIZE
+import random
+
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, money, name="", x=0, y=0):
@@ -14,6 +16,11 @@ class Player(pygame.sprite.Sprite):
         self.is_its_move = False
         self.role = None
         self.money_in_pot = 0
+
+        if name == "You":
+            self.is_bot = False
+        else:
+            self.is_bot = True
 
 
     def reset(self):
@@ -32,10 +39,9 @@ class Player(pygame.sprite.Sprite):
         for card in self.hand:
             card.set_position((x, y))
             card.display(scr)
-            card.show()
             x -= 40
         
-        text = f"{self.name} ${self.money} {self.str_role}"
+        text = f"{self.name} ${self.money} (${self.money_in_pot}) {self.str_role}"
         font = pygame.font.Font(None, 36)
         width, height = font.size(text)[0]+10, 40
 
@@ -74,6 +80,10 @@ class Player(pygame.sprite.Sprite):
         return role_to_str[self.role]
 
     def add_card(self, card):
+        if self.is_bot:
+            card.hide()
+        else:
+            card.show()
         self.hand.append(card)
         card.rotate(-30 if len(self.hand) == 1 else 30)
 
@@ -215,13 +225,7 @@ class Player(pygame.sprite.Sprite):
         """
         return how much money a player gave to pot
         """
-        to_call = biggest_call - self.money_in_pot
-
-        if to_call < 0:
-            to_call = biggest_call
-
-        if self.money - to_call < 0:
-            to_call = self.money
+        to_call = self.get_money_to_call(biggest_call)
 
         self.money_in_pot += to_call
         self.money -= to_call
@@ -235,3 +239,24 @@ class Player(pygame.sprite.Sprite):
     def raise_(self, biggest_call, amount=5):
         biggest_call += amount
         return self.call(biggest_call)
+    
+    def get_money_to_call(self, biggest_call):
+        to_call = biggest_call - self.money_in_pot
+
+        if to_call < 0:
+            to_call = biggest_call
+
+        if self.money - to_call < 0:
+            to_call = self.money
+
+        return to_call
+    
+    def take_action(self):
+        action = random.choices([Action.CALL, Action.CHECK, Action.FOLD, Action.RAISE], 
+                                weights=[50, 30, 5, 15], k=1)[0]
+        return action
+    
+
+    def show_hand(self):
+        for card in self.hand:
+            card.show()

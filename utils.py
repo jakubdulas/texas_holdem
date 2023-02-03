@@ -2,6 +2,9 @@ import pygame
 from collections import Counter
 from Card import Card
 from constants import DECK_POSITION, BTN_SIZE
+import matplotlib.pyplot as plt
+from IPython import display
+from Action import Action
 
 
 def display_buttons(buttons, scr):
@@ -13,6 +16,7 @@ def display_buttons(buttons, scr):
 
         btn_rects.append(display_in_center(button, scr, dx=displacement_x, dy=250))
     return btn_rects
+
 
 def display_pot(pot, scr):
     """
@@ -69,7 +73,7 @@ def create_button(text, color):
     button = pygame.Surface((width, height))
     button.fill(color)
 
-    font = pygame.font.Font(None, 36)
+    font = pygame.font.SysFont(None, 36)
     text = font.render(text, 1, (255, 255, 255))
 
     text_rect = text.get_rect(center=(width/2, height/2))
@@ -82,7 +86,7 @@ def create_text(text):
     """
     Creates text
     """
-    font = pygame.font.Font(None, 36)
+    font = pygame.font.SysFont(None, 36)
     text = font.render(text, 1, (241, 225, 127))
     return text
 
@@ -482,7 +486,7 @@ def choose_winner(players, table_cards):
     Returns list of winners
     """
     player_combination_value = [(player, player.get_combination_and_hand_value(table_cards))
-                                for player in players if not player.out_of_game]
+                                for player in players]
 
     player_combination_value.sort(key=lambda x: x[1][1], reverse=True)
     max_points = player_combination_value[0][1][1]
@@ -502,3 +506,44 @@ def choose_winner(players, table_cards):
         elif max_points == 1: return compare_high_cards(player_combination_value)
         
     return [player_combination_value[0][0]]
+
+
+def plot(balances, mean_income):
+    display.clear_output(wait=True)
+    display.display(plt.gcf())
+    plt.clf()
+    plt.title('Training...')
+    plt.xlabel('Number of Games')
+    plt.ylabel('Money')
+    plt.plot(balances)
+    plt.plot(mean_income)
+    plt.ylim(ymin=0)
+    plt.text(len(balances)-1, balances[-1], str(balances[-1]))
+    plt.text(len(mean_income)-1, mean_income[-1], str(mean_income[-1]))
+    plt.show(block=False)
+    plt.pause(.1)
+
+
+def plot_bars(taken_actions):
+    display.clear_output(wait=True)
+    display.display(plt.gcf())
+    plt.clf()
+    plt.title('Training...')
+    plt.xlabel('Actions')
+    plt.ylabel('Number of taken actions')
+    taken_actions = Counter(taken_actions).most_common(3)
+    xs, ys = zip(*taken_actions)
+    xs = list(xs)
+    
+    for idx, x in enumerate(xs):
+        if x == Action.CALL:
+            xs[idx] = 'Call'
+        elif x == Action.RAISE:
+            xs[idx] = 'Raise'
+        elif x == Action.FOLD:
+            xs[idx] = 'Fold'
+
+    plt.bar(xs, ys, width=0.4)
+    plt.ylim(ymin=0)
+    plt.show(block=False)
+    plt.pause(.1)

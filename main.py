@@ -26,10 +26,11 @@ class Poker:
 
         # game variables
         self.players = []
-        self.flop_gen = self.flop()
+        self.flop_gen = self.flop_generator()
         self.gameState = GameState.SHOW_PLAYERS
         self.winner_text = None
         self.dealer_idx = 0
+        self.players_move = None
         self.reset_game(True)
 
         # buttons
@@ -61,7 +62,9 @@ class Poker:
         self.deck = []
         for suit in SUITS:
             for name in NAMES:
-                self.deck.append(Card(name, suit))
+                card = Card(name, suit)
+                card.hide()
+                self.deck.append(card)
         random.shuffle(self.deck)
         set_deck_position(self.deck)
 
@@ -70,7 +73,12 @@ class Poker:
         for player in self.players:
             player.reset()
 
+        for player in self.players:
+            if player.money == 0:
+                player.out_of_game = True
+
         self.players_in_game = [player for player in self.players if not player.out_of_game]
+        
 
         if not init: 
             self.gameState = GameState.DEALING
@@ -81,14 +89,15 @@ class Poker:
         else:
             self.player_gen = self.player_generator(True)
             
+        self.players_move_gen = self.next_players_move_generator()
 
         self.total_pot = 0
         self.biggest_call = 0
         self.deal_num = 0
         self.player_biggest_call = None
         self.iters = 0
-
-        self.players_move_gen = self.next_players_move_generator()
+        self.winner_text = None
+        # self.players_move = None
 
 
     def player_generator(self, create_players = False):
@@ -106,11 +115,6 @@ class Poker:
                     yield player
 
 
-    def flop_generator(self):
-        for _ in range(3):
-            yield self.deck.pop(-1)
-
-
     def next_players_move_generator(self):
         """
         yields Player object on demand and starts its move
@@ -126,6 +130,11 @@ class Poker:
                 i += 1
             else:
                 i = 0
+
+
+    def flop_generator(self):
+        for _ in range(3):
+            yield self.deck.pop(-1)
 
 
     def set_roles(self):
@@ -158,13 +167,14 @@ class Poker:
         """
         Handles action of a player
         """
-
         if action == Action.CHECK and self.players_move.money_in_pot == self.biggest_call:
             if (self.players_move.role == Role.SB and self.biggest_call < 1) or \
                 (self.players_move.role == Role.BB and self.biggest_call < 2):
                 return False
             self.players_move.check()
+
             return True
+
         if action == Action.FOLD:
             if (self.players_move.role == Role.SB and self.biggest_call < 1) or \
                 (self.players_move.role == Role.BB and self.biggest_call < 2):
@@ -173,7 +183,14 @@ class Poker:
             self.players_in_game.pop(self.players_in_game.index(self.players_move))
             self.players_move.fold()
 
-            self.players_move = next(self.players_move_gen)
+            if len(self.players_in_game) == 1:
+                self.gameState = GameState.ENDED
+
+            if self.players_move == self.player_biggest_call:
+                self.players_move = next(self.players_move_gen)
+                self.player_biggest_call = self.players_move
+            else:
+                self.players_move = next(self.players_move_gen)
 
             if self.players_move.money == 0:
                 self.gameState = GameState.ALL_IN
@@ -186,7 +203,9 @@ class Poker:
                 self.biggest_call = self.players_move.money_in_pot
                 self.player_biggest_call = self.players_move
 
+
             return True
+
         if action == Action.CALL:
             m = 0
             if self.players_move.role == Role.SB and self.biggest_call < 1:
@@ -203,33 +222,28 @@ class Poker:
 
             return True
         return False
-
     
-    def playing(self, event):
-        if event.type == pygame.MOUSEBUTTONUP:
-            pos = pygame.mouse.get_pos()
-            clicked_rects = [btn for btn in self.buttons_rect
-                        if btn.collidepoint(pos)]
 
-            if len(clicked_rects):
-                idx = self.buttons_rect.index(clicked_rects[0])
-                action = self.idx_to_action[idx]
-            
-                if self.handle_action(action):
-                    self.players_move = next(self.players_move_gen)
+    def betting(self, action):            
+        if self.handle_action(action):
+            self.players_move = next(self.players_move_gen)
 
-                    if self.players_move.money == 0:
-                        self.gameState = GameState.ALL_IN
+            if len(set(self.table_cards)) == 5 and None not in self.table_cards and \
+                    self.player_biggest_call == self.players_move:
+                self.gameState = GameState.ENDED
 
-                    elif self.players_move == self.player_biggest_call and action != Action.FOLD:
-                        if len(set(self.table_cards)) == 1:
-                            self.gameState = GameState.FLOP
-                        elif len(set(self.table_cards)) == 4:
-                            self.gameState = GameState.TURN
-                        elif len(set(self.table_cards)) == 5 and None in self.table_cards:
-                            self.gameState = GameState.RIVER
+            if self.players_move.money == 0:
+                self.gameState = GameState.ALL_IN
 
-    
+            elif self.players_move == self.player_biggest_call:
+                if len(set(self.table_cards)) == 1:
+                    self.gameState = GameState.FLOP
+                elif len(set(self.table_cards)) == 4:
+                    self.gameState = GameState.TURN
+                elif len(set(self.table_cards)) == 5 and None in self.table_cards:
+                    self.gameState = GameState.RIVER
+
+                    
     def show_players(self):
         try:
             if self.iters % self.delay_rate == 0:
@@ -254,7 +268,7 @@ class Poker:
                 self.iters = 0
 
             if self.deal_num > 1:
-                self.gameState = GameState.PLAYING
+                self.gameState = GameState.BETTING
                 self.players_move = next(self.players_move_gen)
                 self.players_in_game = [player for player in self.players if not player.out_of_game]
 
@@ -280,16 +294,16 @@ class Poker:
 
 
     def flop(self):
-        try:
-            if self.iters % self.delay_rate == 0:
+        if self.iters % self.delay_rate == 0:
+            try:
                 card = next(self.flop_gen)
                 card.show()
                 idx = self.table_cards.index(None)
                 self.table_cards[idx] = card
-        except:
-            self.gameState = GameState.PLAYING
-            self.flop_gen = self.flop_generator()
-            self.iters = 0
+            except:
+                self.gameState = GameState.BETTING
+                self.flop_gen = self.flop_generator()
+                self.iters = 0
         self.iters += 1
 
 
@@ -297,19 +311,19 @@ class Poker:
         card = self.deck.pop(-1)
         card.show()
         self.table_cards[3] = card
-        self.gameState = GameState.PLAYING
+        self.gameState = GameState.BETTING
 
 
     def river(self):
         card = self.deck.pop(-1)
         card.show()
         self.table_cards[4] = card
-        self.gameState = GameState.PLAYING
+        self.gameState = GameState.BETTING
 
 
     def all_in(self):
         if None not in self.table_cards:
-            self.gameState = GameState.PLAYING
+            self.gameState = GameState.ENDED
             self.iters = 0
         else:
             if self.iters % self.delay_rate == 0:
@@ -321,7 +335,7 @@ class Poker:
 
 
     def display_objects(self):
-        # displaying pobjects on the screen
+        # displaying objects on the screen
         self.scr.blit(self.background, (0, 0))
         display_in_center(self.poker_table, self.scr)
 
@@ -332,7 +346,10 @@ class Poker:
         
         display_cards(self.table_cards, self.scr)
         display_pot(self.total_pot, self.scr)
-        self.buttons_rect = display_buttons(self.buttons, self.scr)
+
+        if self.players_move is not None:
+            if not self.players_move.is_bot:
+                self.buttons_rect = display_buttons(self.buttons, self.scr)
 
         for p in self.players:
             p.display(self.scr)
@@ -341,13 +358,27 @@ class Poker:
             c.display(self.scr)
 
 
+    def show_all_cards(self):
+        for player in self.players_in_game:
+            player.show_hand()
+
+
     def announce_winner(self):
-        if len(set(self.table_cards)) == 5 and None not in self.table_cards:
-            winners = choose_winner(self.players, self.table_cards)
-            text = f"${self.total_pot} wygrywa: "
+        if len(self.players_in_game) == 1:
+            winner = self.players_in_game[0]
+
+            text = f"${self.total_pot} wins: " + winner.name
+            win = self.total_pot
+
+            winner.money += win
+            
+            self.winner_text = create_text(text)
+        else: 
+            self.show_all_cards()
+            winners = choose_winner(self.players_in_game, self.table_cards)
+            text = f"${self.total_pot} wins: "
             winners_text = ""
             win_per_player = round(self.total_pot/len(winners), 2)
-            self.total_pot = 0
 
             for winner in winners:
                 winners_text += winner.name + " "
@@ -355,20 +386,30 @@ class Poker:
             
             self.winner_text = create_text(text+winners_text)
 
-            for player in self.players:
-                if player.money == 0:
-                    player.out_of_game = True
-
-            self.gameState = GameState.ENDED
-
 
     def game_step(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
 
-            if self.gameState == GameState.PLAYING:
-                self.playing(event)
+            if self.gameState == GameState.BETTING:
+                if event.type == pygame.MOUSEBUTTONUP:
+                    pos = pygame.mouse.get_pos()
+                    clicked_rects = [btn for btn in self.buttons_rect
+                                if btn.collidepoint(pos)]
+
+                    if len(clicked_rects):
+                        idx = self.buttons_rect.index(clicked_rects[0])
+                        action = self.idx_to_action[idx]
+                        self.betting(action)
+                        self.iters = 0
+        
+        if self.gameState == GameState.BETTING:
+            self.iters += 1
+            if self.players_move.is_bot and self.iters % 20 == 0:
+                action = self.players_move.take_action()
+                self.betting(action)
+                self.iters = 0
 
         self.display_objects()
 
@@ -391,14 +432,14 @@ class Poker:
             self.all_in()
 
         if self.gameState == GameState.ENDED:
+            if not self.winner_text:
+                self.announce_winner()
             self.iters += 1
             display_in_center(self.winner_text, self.scr, dy=-300)
             if self.iters == 100:
                 self.reset_game()
                 if len(self.players_in_game) == 1:
                     self.gameState = GameState.END_GAME_SCREEN
-        else:
-            self.announce_winner()
 
 
 
