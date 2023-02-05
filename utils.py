@@ -7,14 +7,14 @@ from IPython import display
 from Action import Action
 
 
-def display_buttons(buttons, scr):
+def display_buttons(buttons, scr, dy=250):
     btn_rects = []
     for idx, button in enumerate(buttons):
         width = BTN_SIZE[0]
         total_width = ((len(buttons)-1)*(width))/2
         displacement_x = -total_width + idx*width
 
-        btn_rects.append(display_in_center(button, scr, dx=displacement_x, dy=250))
+        btn_rects.append(display_in_center(button, scr, dx=displacement_x, dy=dy))
     return btn_rects
 
 
@@ -65,15 +65,19 @@ def set_deck_position(deck):
     for idx, card in enumerate(deck):
         card.set_position(DECK_POSITION)
 
-def create_button(text, color):
+def create_button(text, color, font_size=36, width=None):
     """
     Creates button
     """
-    width, height = BTN_SIZE
+    if width is None:
+        width, height = BTN_SIZE
+    else:
+        height = BTN_SIZE[1]
+
     button = pygame.Surface((width, height))
     button.fill(color)
 
-    font = pygame.font.SysFont(None, 36)
+    font = pygame.font.SysFont(None, font_size)
     text = font.render(text, 1, (255, 255, 255))
 
     text_rect = text.get_rect(center=(width/2, height/2))
