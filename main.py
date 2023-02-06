@@ -91,7 +91,7 @@ class Poker:
                 if player.money == 0:
                     player.out_of_game = True
 
-            self.players_in_game = [player for player in self.player
+            self.players_in_game = [player for player in self.players
                                     if not player.out_of_game]
 
             self.gameState = GameState.DEALING
