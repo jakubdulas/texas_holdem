@@ -16,7 +16,8 @@ class Card(pygame.sprite.Sprite):
         self.name = name
         self.suit = suit
 
-        self.image_front = pygame.image.load(f'images/Cards_Dark/{suit}{name}.png')
+        self.image_front = pygame.image.load(
+            f'images/Cards_Dark/{suit}{name}.png')
         self.image_back = pygame.image.load('images/back.tiff')
 
         self.image_front = pygame.transform.scale(self.image_front, self.SIZE)
@@ -36,7 +37,6 @@ class Card(pygame.sprite.Sprite):
 
         return strength
 
-    
     def tokenize(self, token):
         self.token = token
 
@@ -55,10 +55,10 @@ class Card(pygame.sprite.Sprite):
         self.is_hidden = False
 
     def display(self, scr, pos=None):
-        if pos == None:
+        if pos is None:
             pos = self.rect
         scr.blit(self.image, pos)
-    
+
     def get_rect(self):
         return self.rect
 

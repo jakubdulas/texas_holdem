@@ -22,7 +22,6 @@ class Player(pygame.sprite.Sprite):
         else:
             self.is_bot = True
 
-
     def reset(self):
         if self.money == 0:
             self.out_of_game = True
@@ -33,14 +32,13 @@ class Player(pygame.sprite.Sprite):
         self.money_in_pot = 0
         self.hand = []
 
-
     def display(self, scr):
         x, y = self.rect.x + 20, self.rect.y
         for card in self.hand:
             card.set_position((x, y))
             card.display(scr)
             x -= 40
-        
+
         text = f"{self.name} ${self.money} (${self.money_in_pot}) {self.str_role}"
         font = pygame.font.Font(None, 36)
         width, height = font.size(text)[0]+10, 40
@@ -54,7 +52,7 @@ class Player(pygame.sprite.Sprite):
         elif self.out_of_game:
             bar.fill((250, 70, 70))
         else:
-            bar.fill((200, 200 ,200))
+            bar.fill((200, 200, 200))
 
         text_rect = text.get_rect(center=(width/2, height/2))
         bar.blit(text, text_rect)
@@ -89,7 +87,8 @@ class Player(pygame.sprite.Sprite):
 
     def get_combination_and_hand_value(self, cards):
         """
-        Returns the best combination for a player and strength of the combination
+        Returns the best combination for a player
+        and strength of the combination
         Strengths:
         - 9 - straight flush
         - 8 - four of a kind
@@ -114,15 +113,17 @@ class Player(pygame.sprite.Sprite):
                 if new_points > points:
                     points = new_points
                     best_combination = combination
-                    strongest_combination = calculate_combination_strength(combination, points)
+                    strongest_combination = \
+                        calculate_combination_strength(combination, points)
                 elif new_points == points:
-                    temp_combination_strength = calculate_combination_strength(combination, points)
+                    temp_combination_strength = \
+                        calculate_combination_strength(combination, points)
                     if strongest_combination < temp_combination_strength:
                         best_combination = combination
                         strongest_combination = temp_combination_strength
 
-        i=1
-        j=0
+        i = 1
+        j = 0
 
         while j != 4:
             combination = cards.copy()
@@ -133,9 +134,11 @@ class Player(pygame.sprite.Sprite):
             if new_points > points:
                 points = new_points
                 best_combination = combination
-                strongest_combination = calculate_combination_strength(combination, points)
+                strongest_combination = \
+                    calculate_combination_strength(combination, points)
             elif new_points == points:
-                temp_combination_strength = calculate_combination_strength(combination, points)
+                temp_combination_strength = \
+                    calculate_combination_strength(combination, points)
                 if strongest_combination < temp_combination_strength:
                     best_combination = combination
                     strongest_combination = temp_combination_strength
@@ -143,16 +146,18 @@ class Player(pygame.sprite.Sprite):
             if i == 4:
                 j += 1
                 i = j
-            i+=1
+            i += 1
 
         if points == 1:
             return cards, 1
-        
+
         if points == 2 or points == 3 or points == 4 or points == 8:
             new_best_combination = []
-            repeated_cards = [card_name for card_name, _ in find_repetitions(best_combination)]
+            repeated_cards = [card_name for card_name, _
+                              in find_repetitions(best_combination)]
             for combination_card, table_card in zip(best_combination, cards):
-                if combination_card in self.hand and combination_card.name not in repeated_cards:
+                if combination_card in self.hand and combination_card.name \
+                   not in repeated_cards:
                     new_best_combination.append(table_card)
                 else:
                     new_best_combination.append(combination_card)
@@ -169,28 +174,36 @@ class Player(pygame.sprite.Sprite):
         most_common = find_repetitions(combination)
 
         # straight flush
-        if is_flush_ and is_straight_: return 9
+        if is_flush_ and is_straight_:
+            return 9
 
         # 4 of a kind
-        if len(most_common) == 1 and most_common[0][1] == 4: return 8
-        
+        if len(most_common) == 1 and most_common[0][1] == 4:
+            return 8
+
         # full house
-        if len(most_common) == 2 and most_common[0][1] + most_common[1][1] == 5: return 7
+        if len(most_common) == 2 and most_common[0][1] + most_common[1][1] == 5:
+            return 7
 
         # flush
-        if is_flush_: return 6
+        if is_flush_:
+            return 6
 
         # straight
-        if is_straight_: return 5
+        if is_straight_:
+            return 5
 
         # 3 of a kind
-        if len(most_common) == 1 and most_common[0][1] == 3: return 4
+        if len(most_common) == 1 and most_common[0][1] == 3:
+            return 4
 
         # 2 pairs
-        if len(most_common) == 2 and most_common[0][1] + most_common[1][1] == 4: return 3
+        if len(most_common) == 2 and most_common[0][1] + most_common[1][1] == 4:
+            return 3
 
         # 1 pair
-        if len(most_common) == 1 and most_common[0][1] == 2: return 2
+        if len(most_common) == 1 and most_common[0][1] == 2:
+            return 2
 
         # high card
         return 1
@@ -205,7 +218,8 @@ class Player(pygame.sprite.Sprite):
 
         hand.sort(reverse=True)
 
-        if len(hand) == 0: return 0
+        if len(hand) == 0:
+            return 0
         return hand[0]
 
     def set_role(self, role):
@@ -239,7 +253,7 @@ class Player(pygame.sprite.Sprite):
     def raise_(self, biggest_call, amount=5):
         biggest_call += amount
         return self.call(biggest_call)
-    
+
     def get_money_to_call(self, biggest_call):
         to_call = biggest_call - self.money_in_pot
 
@@ -250,12 +264,12 @@ class Player(pygame.sprite.Sprite):
             to_call = self.money
 
         return to_call
-    
+
     def take_action(self):
-        action = random.choices([Action.CALL, Action.CHECK, Action.FOLD, Action.RAISE], 
+        action = random.choices([Action.CALL, Action.CHECK,
+                                 Action.FOLD, Action.RAISE],
                                 weights=[50, 30, 5, 15], k=1)[0]
         return action
-    
 
     def show_hand(self):
         for card in self.hand:

@@ -1016,8 +1016,3 @@ check_choose_winner_flush1()
 check_choose_winner_high_card1()
 check_choose_winner_highcard2()
 check_choose_winner_highcard3()
-
-
-
-
-
